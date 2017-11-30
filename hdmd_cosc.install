@@ -11,6 +11,11 @@ function hdmd_cosc_enable() {
 
 /**
  * Implements hook_uninstall().
+ *
+ * @todo Delete all the variables set.
+ *
+ * @see hdmd_cosc_admin_form
+ *
  */
 function hdmd_cosc_uninstall() {
   variable_del('hdmd_cosc_status');
