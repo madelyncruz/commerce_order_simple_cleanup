@@ -1,5 +1,5 @@
 name = HDMD Commerce Order Simple Cleanup
-description = Delete the abandoned commerce orders by order status and time.
+description = Deleting the abandoned commerce orders by order status and time set.
 package = HDMD
 core = 7.x
 

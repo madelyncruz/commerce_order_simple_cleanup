@@ -6,7 +6,3 @@ Delete the abandoned commerce orders by order status and time on run cron.
 - Select the order status that should be deleted.
 - Select how old the order should be.
 - Select how many orders should be deleted.
-
-# Recommendations
-- Install and configure properly the "Elysia Cron" module.
-- Create a cron job on your hosting.
