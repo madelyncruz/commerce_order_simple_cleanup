@@ -1,0 +1,19 @@
+<?php
+
+/**
+ * @file
+ * Installation file for the hdmd_cosc module.
+ */
+
+function hdmd_cosc_enable() {
+  drupal_set_message(t('HDMD Commerce Order Simple Cleanup has been installed. You may now configure it <a href="/admin/commerce/config/hdmd-cosc">here</a>.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function hdmd_cosc_uninstall() {
+  variable_del('hdmd_cosc_status');
+  variable_del('hdmd_cosc_time');
+  variable_del('hdmd_cosc_range');
+}

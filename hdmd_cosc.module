@@ -1,0 +1,131 @@
+<?php
+
+/**
+ * Implements hook_cron().
+ */
+function hdmd_cosc_cron() {
+  if ($time = variable_get('hdmd_cosc_time')) {
+    _hdmd_order_status_payment_cleanup($time);
+  }
+}
+
+/**
+ * Implements hook_permission().
+ */
+function hdmd_cosc_permission() {
+  return array(
+    'administer hdmd cosc' => array(
+      'title' => t('Administer HDMD COSC'),
+      'description' => t('Access to configure HDMD COSC form.'),
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function hdmd_cosc_menu() {
+  return array(
+    'admin/commerce/config/hdmd-cosc' => array(
+      'title' => t('HDMD COSC'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('hdmd_cosc_admin_form'),
+      'access arguments' => array('administer hdmd cosc'),
+      'weight' => 10
+    )
+  );
+}
+
+function hdmd_cosc_admin_form($form, &$form_state) {
+  $status = _commerce_order_status_options();
+
+  $form['instructions']['#markup'] = '<h2>' . t('On each cron run, the module will find and delete the abandoned orders by status and time specified below.') . '</h2>';
+
+  $form['hdmd_cosc_status'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Which status of the orders should be deleted?'),
+    '#options' => $status,
+    '#required' => TRUE,
+    '#default_value' => variable_get('hdmd_cosc_status'),
+    '#description' => t('Choose the status of the orders that needs to be deleted.'),
+  );
+
+  $form['hdmd_cosc_time'] = array(
+    '#type' => 'select',
+    '#title' => t('How old the orders should be?'),
+    '#options' => _hdmd_cosc_time_options(),
+    '#required' => TRUE,
+    '#default_value' => variable_get('hdmd_cosc_time'),
+    '#description' => t(''),
+  );
+
+  $form['hdmd_cosc_range'] = array(
+    '#type' => 'select',
+    '#title' => t('How many orders should be deleted?'),
+    '#options' => range(5, 30, 5),
+    '#required' => TRUE,
+    '#default_value' => variable_get('hdmd_cosc_range'),
+    '#description' => t(''),
+  );
+
+  return system_settings_form($form);
+}
+
+function _commerce_order_status_options() {
+  $statuses = commerce_order_statuses();
+
+  $excluded_statuses = array(
+    'canceled',
+    'completed',
+    'pending',
+    'processing',
+  );
+
+  foreach ($statuses as $state => $status) {
+    if (in_array($state, $excluded_statuses)) {
+      continue;
+    }
+    $status = (object) $status;
+
+    $status_options[$status->name] = $status->title;
+  }
+
+  return isset($status_options) ? $status_options : array();
+}
+
+function _hdmd_cosc_time_options() {
+  return array(
+    '2 days' => t('2 days above'),
+    '3 days' => t('3 days above'),
+    '4 days' => t('4 days above'),
+    '5 days' => t('5 days above'),
+    '6 days' => t('6 days above'),
+    '7 days' => t('7 days above'),
+  );
+}
+
+/**
+ * Implements hook_cron().
+ */
+function _hdmd_order_status_payment_cleanup($time) {
+  if ($order_statuses = variable_get('hdmd_cosc_status')) {
+    $limit = !empty(variable_get('hdmd_cosc_range')) ? variable_get('hdmd_cosc_range') : 10;
+
+    $query = db_select('commerce_order', 'o')
+            ->condition('o.status', $order_statuses, 'IN')
+            ->condition('o.changed', strtotime("now -$time"), '<=')
+            ->fields('o', array('order_id'))
+            ->range(0, $limit);
+
+    $results = $query->execute()->fetchAll();
+
+    foreach ($results as $result) {
+      $order_ids[$result->order_id] = $result->order_id;
+    }
+
+    if (isset($order_ids)) {
+      commerce_order_delete_multiple($order_ids);
+      watchdog('hdmd_cosc', '_hdmd_order_status_cleanup: The following order IDs has been deleted: = ' . '<pre>' . print_r($order_ids, TRUE) . '</pre>');
+    }
+  }
+}

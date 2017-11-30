@@ -1,0 +1,8 @@
+name = HDMD Commerce Order Simple Cleanup
+description = Delete the abandoned commerce orders by order status and time.
+package = HDMD
+core = 7.x
+
+dependencies[] = commerce_order
+
+configure = admin/commerce/config/hdmd-cosc
