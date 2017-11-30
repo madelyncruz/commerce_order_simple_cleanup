@@ -20,5 +20,5 @@ function hdmd_cosc_enable() {
 function hdmd_cosc_uninstall() {
   variable_del('hdmd_cosc_status');
   variable_del('hdmd_cosc_time');
-  variable_del('hdmd_cosc_range');
+  variable_del('hdmd_cosc_limit');
 }
