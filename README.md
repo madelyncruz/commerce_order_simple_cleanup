@@ -1,4 +1,12 @@
 # HDMD Commerce Order Simple Cleanup
-Delete the abandoned commerce orders by order status and time.
+Delete the abandoned commerce orders by order status and time on run cron.
 
-# Usage
+# Installation
+- Download and configure this module in "admin/commerce/config/hdmd-cosc".
+- Select the order status that should be deleted.
+- Select how old the order should be.
+- Select how many orders should be deleted.
+
+# Recommendations
+- Install and configure properly the "Elysia Cron" module.
+- Create a cron job on your hosting.
