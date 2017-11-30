@@ -2,8 +2,14 @@
 
 /**
  * Implements hook_cron().
+ *
+ * @todo Perform task.
+ *
+ * @see _hdmd_order_status_payment_cleanup
+ *
  */
 function hdmd_cosc_cron() {
+  // Should have set the time.
   if ($time = variable_get('hdmd_cosc_time')) {
     _hdmd_order_status_payment_cleanup($time);
   }
@@ -37,8 +43,10 @@ function hdmd_cosc_menu() {
 }
 
 function hdmd_cosc_admin_form($form, &$form_state) {
+  // Load the available order statuses.
   $status = _commerce_order_status_options();
 
+  // Add an instructions.
   $form['instructions']['#markup'] = '<h2>' . t('On each cron run, the module will find and delete the abandoned orders by status and time specified below.') . '</h2>';
 
   $form['hdmd_cosc_status'] = array(
@@ -74,18 +82,17 @@ function hdmd_cosc_admin_form($form, &$form_state) {
 function _commerce_order_status_options() {
   $statuses = commerce_order_statuses();
 
-  $excluded_statuses = array(
-    'canceled',
-    'completed',
-    'pending',
-    'processing',
-  );
+  $excluded_statuses = array('canceled', 'completed', 'pending', 'processing');
 
-  foreach ($statuses as $state => $status) {
-    if (in_array($state, $excluded_statuses)) {
+  foreach ($statuses as $status) {
+    // Convert array to an object properties.
+    $status = (object) $status;
+
+    // Skip the completed orders specified in $excluded_statuses.
+    // Must be excluded as only the orders in the shopping cart should be deleted.
+    if (in_array($status->state, $excluded_statuses)) {
       continue;
     }
-    $status = (object) $status;
 
     $status_options[$status->name] = $status->title;
   }
