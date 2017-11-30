@@ -5,13 +5,13 @@
  *
  * @todo Perform task.
  *
- * @see _hdmd_order_status_payment_cleanup
+ * @see _hdmd_abandoned_orders_cleanup
  *
  */
 function hdmd_cosc_cron() {
   // Should have set the time.
   if ($time = variable_get('hdmd_cosc_time')) {
-    _hdmd_order_status_payment_cleanup($time);
+    _hdmd_abandoned_orders_cleanup($time);
   }
 }
 
@@ -55,7 +55,6 @@ function hdmd_cosc_admin_form($form, &$form_state) {
     '#options' => $status,
     '#required' => TRUE,
     '#default_value' => variable_get('hdmd_cosc_status'),
-    '#description' => t('Choose the status of the orders that needs to be deleted.'),
   );
 
   $form['hdmd_cosc_time'] = array(
@@ -64,7 +63,6 @@ function hdmd_cosc_admin_form($form, &$form_state) {
     '#options' => _hdmd_cosc_time_options(),
     '#required' => TRUE,
     '#default_value' => variable_get('hdmd_cosc_time'),
-    '#description' => t(''),
   );
 
   $form['hdmd_cosc_limit'] = array(
@@ -73,7 +71,6 @@ function hdmd_cosc_admin_form($form, &$form_state) {
     '#options' => range(5, 30, 5),
     '#required' => TRUE,
     '#default_value' => variable_get('hdmd_cosc_limit'),
-    '#description' => t(''),
   );
 
   return system_settings_form($form);
@@ -114,7 +111,7 @@ function _hdmd_cosc_time_options() {
 /**
  * Implements hook_cron().
  */
-function _hdmd_order_status_payment_cleanup($time) {
+function _hdmd_abandoned_orders_cleanup($time) {
   if ($order_statuses = variable_get('hdmd_cosc_status')) {
     // Set the query limit.
     $limit = !empty(variable_get('hdmd_cosc_limit')) ? variable_get('hdmd_cosc_limit') : 10;
@@ -133,7 +130,7 @@ function _hdmd_order_status_payment_cleanup($time) {
 
     if (isset($order_ids)) {
       commerce_order_delete_multiple($order_ids);
-      watchdog('hdmd_cosc', '_hdmd_order_status_cleanup: The following order IDs has been deleted: = ' . '<pre>' . print_r($order_ids, TRUE) . '</pre>');
+      watchdog('hdmd_cosc', '_hdmd_abandoned_orders_cleanup: The following order IDs has been deleted: = ' . '<pre>' . print_r($order_ids, TRUE) . '</pre>');
     }
   }
 }
