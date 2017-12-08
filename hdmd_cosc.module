@@ -68,7 +68,7 @@ function hdmd_cosc_admin_form($form, &$form_state) {
   $form['hdmd_cosc_limit'] = array(
     '#type' => 'select',
     '#title' => t('How many orders should be deleted?'),
-    '#options' => range(5, 30, 5),
+    '#options' => drupal_map_assoc(range(5, 30, 5)),
     '#required' => TRUE,
     '#default_value' => variable_get('hdmd_cosc_limit'),
   );
