@@ -122,10 +122,10 @@ function _hdmd_abandoned_orders_cleanup($time) {
             ->fields('o', array('order_id'))
             ->range(0, $limit);
 
-    $results = $query->execute()->fetchAll();
-
-    foreach ($results as $result) {
-      $order_ids[$result->order_id] = $result->order_id;
+    if ($results = $query->execute()->fetchAll()) {
+      foreach ($results as $result) {
+        $order_ids[$result->order_id] = $result->order_id;
+      }
     }
 
     if (isset($order_ids)) {
