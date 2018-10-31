@@ -1,17 +1,39 @@
 <?php
 
 /**
+ * @file
+ *
+ * Delete abandoned commerce orders by order status on run cron.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function commerce_order_simple_cleanup_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#commerce_order_simple_cleanup':
+      $output = '<p>' . t('The Commerce Order Simple Cleanup module provides ability to delete old orders.') . '</p>';
+      return $output;
+  }
+}
+
+/**
  * Implements hook_cron().
  *
  * @todo Perform task.
  *
- * @see _commerce_order_simple_cleanup
+ * @see _commerce_order_simple_cleanup_run
  *
  */
 function commerce_order_simple_cleanup_cron() {
-  // Should have set the time.
-  if ($time = variable_get('commerce_order_simple_cleanup_time')) {
-    _commerce_order_simple_cleanup($time);
+  // Get the time.
+  $time = variable_get('commerce_order_simple_cleanup_time');
+  // Get the status.
+  $status = variable_get('commerce_order_simple_cleanup_status');
+
+  // Execute _commerce_order_simple_cleanup_run
+  if (!empty($time) && !empty($status) && array_filter($status)) {
+    _commerce_order_simple_cleanup_run($time);
   }
 }
 
@@ -46,15 +68,19 @@ function commerce_order_simple_cleanup_admin_form($form, &$form_state) {
   // Load the available order statuses.
   $status = _commerce_order_status_options();
 
-  // Add an instructions.
-  $form['instructions']['#markup'] = '<h2>' . t('On each cron run, the module will find and delete the abandoned orders by status and time specified below.') . '</h2>';
-
   $form['commerce_order_simple_cleanup_status'] = array(
+    '#type' => 'checkboxes',
+    '#options' => array(1 => t('Enable')),
+    '#description' => t('Tick this box to enable commerce order cleanup.'),
+    '#default_value' => variable_get('commerce_order_simple_cleanup_status', array()),
+  );
+
+  $form['commerce_order_simple_cleanup_order_statuses'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Which status of the orders should be deleted?'),
     '#options' => $status,
     '#required' => TRUE,
-    '#default_value' => variable_get('commerce_order_simple_cleanup_status', array()),
+    '#default_value' => variable_get('commerce_order_simple_cleanup_order_statuses', array()),
   );
 
   $form['commerce_order_simple_cleanup_time'] = array(
@@ -111,8 +137,8 @@ function _commerce_order_simple_cleanup_time_options() {
 /**
  * Implements hook_cron().
  */
-function _commerce_order_simple_cleanup($time) {
-  if ($order_statuses = variable_get('commerce_order_simple_cleanup_status')) {
+function _commerce_order_simple_cleanup_run($time) {
+  if ($order_statuses = variable_get('commerce_order_simple_cleanup_order_statuses')) {
     // Set the query limit.
     $limit = !empty(variable_get('commerce_order_simple_cleanup_limit')) ? variable_get('commerce_order_simple_cleanup_limit') : 10;
 
@@ -130,7 +156,7 @@ function _commerce_order_simple_cleanup($time) {
 
     if (isset($order_ids)) {
       commerce_order_delete_multiple($order_ids);
-      watchdog('commerce_order_simple_cleanup', '_commerce_order_simple_cleanup: The following order IDs has been deleted: = ' . '<pre>' . print_r($order_ids, TRUE) . '</pre>');
+      watchdog('commerce_order_simple_cleanup', '_commerce_order_simple_cleanup_run: The following order IDs has been deleted: = ' . '<pre>' . print_r($order_ids, TRUE) . '</pre>');
     }
   }
 }
