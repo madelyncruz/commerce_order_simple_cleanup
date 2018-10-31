@@ -19,6 +19,7 @@ function commerce_order_simple_cleanup_enable() {
  */
 function commerce_order_simple_cleanup_uninstall() {
   variable_del('commerce_order_simple_cleanup_status');
+  variable_del('commerce_order_simple_cleanup_order_statuses');
   variable_del('commerce_order_simple_cleanup_time');
   variable_del('commerce_order_simple_cleanup_limit');
 }
